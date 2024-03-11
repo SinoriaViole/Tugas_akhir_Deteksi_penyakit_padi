@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "447254237011",
+    "project_id": "tanidoc",
+    "storage_bucket": "tanidoc.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:447254237011:android:f0a50678959f49be121ba6",
+        "android_client_info": {
+          "package_name": "com.example.test_coba"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCpZY_sdpuEzNd4ZH4-kZBxYnjOMsUyvmI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

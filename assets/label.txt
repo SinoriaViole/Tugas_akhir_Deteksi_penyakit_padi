@@ -1,0 +1,4 @@
+0 bacterial leaf blight
+1 blast
+2 brown Spot
+3 normal
