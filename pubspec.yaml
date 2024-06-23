@@ -30,6 +30,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  smooth_page_indicator: ^1.1.0
   image_picker: ^0.8.4+4
   flutter_tflite: ^1.0.1
   camera: ^0.10.5+9
@@ -38,6 +39,9 @@ dependencies:
   firebase_core: ^2.25.5
   firebase_auth: ^4.6.3
   firebase_storage: ^11.2.4
+  cloud_firestore: ^4.15.6
+  url_launcher: ^6.0.12
+  shared_preferences: ^2.0.6
 
 
 
@@ -77,13 +81,15 @@ flutter:
     - assets/login.png
     - assets/welcome.png
     - assets/welcome1.png
+    - assets/brown_spot.jpg
     - assets/avatar.png
     - assets/petani.jpg
+    - assets/petani2.jpg
+    - assets/petani3.jpg
     - assets/banner_rice.jpg
-    - assets/model.tflite
-    - assets/modell.tflite
-    - assets/modelll.tflite
-    - assets/label.txt
+    - assets/modelfinal1.tflite
+    - assets/labels.txt
+
 
 
 

@@ -1,21 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:test_coba/user_auth/firebase_auth_services.dart';
 import 'firebase_options.dart';
 import 'package:test_coba/login.dart';
 import 'package:test_coba/singup.dart';
+import 'package:test_coba/home.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
-  );// Inisialisasi Firebase
-  runApp(MaterialApp(
-    debugShowCheckedModeBanner: false,
-    home: HomePage(),
-  ));
+  ); // Inisialisasi Firebase
+
+  FirebaseAuthService _authService = FirebaseAuthService();
+  bool isLoggedIn = await _authService.isLoggedIn();
+
+  runApp(MyApp(isLoggedIn: isLoggedIn)); // Mengirimkan status login ke MyApp
 }
 
-class HomePage extends StatelessWidget {
+class MyApp extends StatelessWidget {
+  final bool isLoggedIn;
+
+  const MyApp({Key? key, required this.isLoggedIn}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: isLoggedIn ? HomePage() : BeginPage(), // Mengarahkan ke HomePage jika sudah login
+    );
+  }
+}
+
+class BeginPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -31,7 +48,7 @@ class HomePage extends StatelessWidget {
               Column(
                 children: <Widget>[
                   Text(
-                    "Welcome",
+                    "Selamat Datang",
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 30,
@@ -41,50 +58,59 @@ class HomePage extends StatelessWidget {
                     height: 10,
                   ),
                   Text(
-                    "A warm welcome to you! We hope you'll find our app helpful and enjoyable.",
+                    "Semoga aplikasi kami memberikan manfaat dan kesenangan bagi Anda.",
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                        color: Colors.grey[700], fontSize: 15),
-                  )
+                      color: Colors.grey[700],
+                      fontSize: 15,
+                    ),
+                  ),
                 ],
               ),
               Container(
                 height: MediaQuery.of(context).size.height / 3,
                 decoration: BoxDecoration(
-                    image: DecorationImage(
-                        image: AssetImage("assets/welcome1.png"))),
+                  image: DecorationImage(
+                    image: AssetImage("assets/welcome1.png"),
+                  ),
+                ),
               ),
               Column(
                 children: <Widget>[
-                  // the login button
+                  // Tombol login
                   MaterialButton(
                     minWidth: double.infinity,
-                    height: 60,
+                    height: 50,
                     onPressed: () {
-                      Navigator.push(context,
-                          MaterialPageRoute(builder: (context) => LoginPage()));
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => LoginPage()),
+                      );
                     },
                     shape: RoundedRectangleBorder(
-                        side: BorderSide(color: Colors.black),
-                        borderRadius: BorderRadius.circular(50)),
+                      side: BorderSide(color: Colors.black),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                     child: Text(
                       "Login",
-                      style:
-                      TextStyle(fontWeight: FontWeight.w600, fontSize: 18),
+                      style: TextStyle(fontWeight: FontWeight.w600, fontSize: 18),
                     ),
                   ),
-                  //creating the signup button
-                  SizedBox(height: 20),
+                  // Tombol sign up
+                  SizedBox(height: 10),
                   MaterialButton(
                     minWidth: double.infinity,
-                    height: 60,
+                    height: 50,
                     onPressed: () {
-                      Navigator.push(context,
-                          MaterialPageRoute(builder: (context) => SignUpPage()));
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => SignUpPage()),
+                      );
                     },
                     color: Color(0xFF2E8B57),
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(50)),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                     child: Text(
                       "Sign up",
                       style: TextStyle(
@@ -92,9 +118,9 @@ class HomePage extends StatelessWidget {
                           fontWeight: FontWeight.w600,
                           fontSize: 18),
                     ),
-                  )
+                  ),
                 ],
-              )
+              ),
             ],
           ),
         ),

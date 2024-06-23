@@ -1,12 +1,48 @@
 import 'package:flutter/material.dart';
+import 'package:test_coba/editProfile.dart';
+import 'package:test_coba/login.dart';
+import 'package:test_coba/pusatBantuan.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:test_coba/syaratKetentuan.dart';
+import 'package:test_coba/history.dart';
+import 'package:test_coba/main.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ProfilePage extends StatefulWidget {
+  final FirebaseAuth _auth = FirebaseAuth.instance; // Inisialisasi FirebaseAuth di luar kelas
+
   @override
   _ProfilePageState createState() => _ProfilePageState();
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  int _currentIndex = 1; // Sesuaikan indeks dengan halaman profil
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  String? _username;
+  String? _profileImageUrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  // Method untuk mengambil data pengguna
+  Future<void> _loadUserData() async {
+    try {
+      if (widget._auth.currentUser != null) { // Menggunakan widget._auth
+        String userId = widget._auth.currentUser!.uid;
+        // Get user data from Firestore
+        DocumentSnapshot userData = await _firestore.collection('users').doc(userId).get();
+        setState(() {
+          _username = userData['username'] as String?;
+          _profileImageUrl = userData['profileImageUrl'] as String?;
+        });
+      }
+    } catch (e) {
+      print("Error loading user data: $e");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,39 +60,35 @@ class _ProfilePageState extends State<ProfilePage> {
             children: <Widget>[
               CircleAvatar(
                 radius: 30.0,
-                backgroundImage: AssetImage('assets/petani.jpg'), // Ganti dengan gambar profil
+                backgroundImage: _profileImageUrl != null
+                    ? NetworkImage(_profileImageUrl!) as ImageProvider
+                    : AssetImage('assets/petani.jpg') as ImageProvider,
               ),
               SizedBox(width: 20.0),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Text(
-                    'Nama Pengguna', // Ganti dengan nama pengguna
+                    _username ?? 'Loading...',
                     style: TextStyle(fontSize: 18.0),
                   ),
                   SizedBox(height: 5.0),
                   ElevatedButton(
                     onPressed: () {
-                      // Tambahkan logika untuk navigasi ke halaman edit profil
-                      // Misalnya:
-                      // Navigator.pushNamed(context, '/edit_profile');
+                      Navigator.push(
+                          context, MaterialPageRoute(builder: (context) => EditProfilePage()));
                     },
                     style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.all<Color>(Color(0xFF2E8B57),)
+                      backgroundColor: MaterialStateProperty.all<Color>(Color(0xFF2E8B57)),
                     ),
                     child: Text(
-                        'Edit Profil',
+                      'Edit Profil',
                       style: TextStyle(color: Colors.white),
                     ),
                   ),
                 ],
               ),
             ],
-          ),
-          SizedBox(height: 20.0),
-          Text(
-            'Ubah Password',
-            style: TextStyle(fontSize: 16.0),
           ),
           SizedBox(height: 10.0),
           Text(
@@ -66,16 +98,11 @@ class _ProfilePageState extends State<ProfilePage> {
           SizedBox(height: 10.0),
           GestureDetector(
             onTap: () {
-              // Tambahkan logika untuk navigasi ke halaman syarat dan ketentuan
-              // Misalnya:
-              // Navigator.pushNamed(context, '/terms_conditions');
+              _navigateToTerms();
             },
             child: Text(
               'Syarat dan Ketentuan',
-              style: TextStyle(
-                fontSize: 16.0,
-
-              ),
+              style: TextStyle(fontSize: 16.0),
             ),
           ),
           SizedBox(height: 10.0),
@@ -83,31 +110,36 @@ class _ProfilePageState extends State<ProfilePage> {
           SizedBox(height: 10.0),
           GestureDetector(
             onTap: () {
-              // Tambahkan logika untuk navigasi ke halaman pusat bantuan
-              // Misalnya:
-              // Navigator.pushNamed(context, '/help_center');
+              _navigateToHistory();
+            },
+            child: Text(
+              'History',
+              style: TextStyle(fontSize: 16.0),
+            ),
+          ),
+          SizedBox(height: 10.0),
+          Divider(),
+          SizedBox(height: 10.0),
+          GestureDetector(
+            onTap: () {
+              _navigateToHelp();
             },
             child: Text(
               'Pusat Bantuan',
-              style: TextStyle(
-                fontSize: 16.0,
-
-              ),
+              style: TextStyle(fontSize: 16.0),
             ),
           ),
           SizedBox(height: 10.0),
           Divider(),
           ElevatedButton(
             onPressed: () {
-              // Tambahkan logika untuk keluar dari akun
-              // Misalnya:
-              // _logout();
+              _logout();
             },
             style: ButtonStyle(
-              backgroundColor: MaterialStateProperty.all<Color>(Color(0xFF2E8B57),)
+              backgroundColor: MaterialStateProperty.all<Color>(Color(0xFF2E8B57)),
             ),
             child: Text(
-                'Keluar',
+              'Keluar',
               style: TextStyle(color: Colors.white),
             ),
           ),
@@ -116,7 +148,31 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  void _logout() {
-    // Tambahkan logika untuk keluar dari akun di sini
+  // Method untuk logout
+  void _logout() async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.remove('userId'); // Hapus informasi login dari SharedPreferences
+
+      await widget._auth.signOut(); // Menggunakan widget._auth
+      Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => BeginPage()));
+    } on FirebaseAuthException catch (e) {
+      print("Error occurred during logout: $e");
+    }
+  }
+
+  // Method untuk menavigasi ke halaman Syarat dan Ketentuan
+  void _navigateToTerms() {
+    Navigator.push(context, MaterialPageRoute(builder: (context) => TermsPage()));
+  }
+
+  // Method untuk menavigasi ke halaman Pusat Bantuan
+  void _navigateToHelp() {
+    Navigator.push(context, MaterialPageRoute(builder: (context) => PusatBantuanPage()));
+  }
+
+  void _navigateToHistory() {
+    Navigator.push(context, MaterialPageRoute(builder: (context) => History()));
   }
 }

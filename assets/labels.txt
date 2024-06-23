@@ -1,0 +1,4 @@
+backterial_leaf_blight
+Blast
+Brown_spot
+Normal

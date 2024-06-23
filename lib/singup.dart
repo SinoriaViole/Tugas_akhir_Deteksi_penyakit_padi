@@ -1,12 +1,15 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:test_coba/user_auth/firebase_auth_services.dart';
+import 'package:test_coba/login.dart';
 import 'package:test_coba/home.dart';
 
 class SignUpPage extends StatelessWidget {
   final FirebaseAuthService _authService = FirebaseAuthService();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final TextEditingController usernameController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -16,16 +19,6 @@ class SignUpPage extends StatelessWidget {
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.white,
-        leading: IconButton(
-          onPressed: () {
-            Navigator.pop(context);
-          },
-          icon: Icon(
-            Icons.arrow_back_ios,
-            size: 20,
-            color: Colors.black,
-          ),
-        ),
       ),
       body: Container(
         height: MediaQuery.of(context).size.height,
@@ -48,7 +41,7 @@ class SignUpPage extends StatelessWidget {
                       SizedBox(
                         height: 10,
                       ),
-                      Text("Create an account so you can explore all.",
+                      Text("Silahkan buat akun terlebih dahulu.",
                         style: TextStyle(
                           fontSize: 15,
                           color: Colors.grey,
@@ -60,7 +53,7 @@ class SignUpPage extends StatelessWidget {
                     padding: EdgeInsets.symmetric(horizontal: 40),
                     child: Column(
                       children: <Widget>[
-                        inputFile(Label: "Username"),
+                        inputFile(Label: "Username", controller: usernameController),
                         inputFile(Label: "Email", controller: emailController),
                         inputFile(Label: "Password", obscureText: true, controller: passwordController)
                       ],
@@ -72,29 +65,32 @@ class SignUpPage extends StatelessWidget {
                     child: Container(
                       padding: EdgeInsets.only(top: 3, left: 3),
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(50),
+                        borderRadius: BorderRadius.circular(10),
                         color: Color(0xFF2E8B57),
                       ),
                       child: MaterialButton(
                         minWidth: double.infinity,
-                        height: 60,
+                        height: 50,
                         onPressed: () async {
                           String email = emailController.text.trim();
                           String password = passwordController.text.trim();
-                          if (email.isEmpty || password.isEmpty) {
+                          String username = usernameController.text.trim(); // Dapatkan nama pengguna dari input field
+                          if (email.isEmpty || password.isEmpty || username.isEmpty) {
                             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                               content: Text('Please fill in all fields.'),
                             ));
                             return;
                           }
 
-                          User? user = await _authService.signUpWithEmailAndPassword(email, password);
+                          User? user = await _authService.signUpWithEmailAndPassword(email, password, username);
                           if (user != null) {
+                            // Jika pendaftaran berhasil, pindahkan pengguna ke halaman beranda
                             Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(builder: (context) => HomePage()),
                             );
                           } else {
+                            // Jika pendaftaran gagal, tampilkan pesan kesalahan
                             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                               content: Text('Registration failed. Please try again.'),
                             ));
@@ -102,7 +98,7 @@ class SignUpPage extends StatelessWidget {
                         },
                         elevation: 0,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(50),
+                          borderRadius: BorderRadius.circular(10),
                         ),
                         child: Text(
                           "Sign Up",
@@ -119,11 +115,18 @@ class SignUpPage extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
-                      Text("Already have an account?"),
-                      Text(" Login",
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 18,
+                      Text("Sudah memiliki Akun?"),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(context, MaterialPageRoute(
+                              builder: (context) => LoginPage()),
+                          );
+                        },
+                        child: Text(" Login",
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 18,
+                          ),
                         ),
                       )
                     ],

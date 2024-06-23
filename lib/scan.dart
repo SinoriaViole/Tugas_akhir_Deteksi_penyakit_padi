@@ -1,7 +1,9 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_tflite/flutter_tflite.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
 
 import 'dart:developer' as devtools;
@@ -18,7 +20,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Rice Disease Detection',
       theme: ThemeData(
-        // Sesuaikan dengan warna tema aplikasi Anda
+        // Sesuaikan dengan warna tema aplikasi
         primaryColor: Colors.deepPurple,
       ),
       // Hilangkan banner debug
@@ -40,10 +42,50 @@ class _MyHomePageState extends State<MyHomePage> {
   String label = '';
   double confidence = 0.0;
 
+  Future<void> _savePrediction() async {
+    if (filePath == null) return;
+
+    try {
+      User? user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('No user signed in')),
+        );
+        return;
+      }
+
+      String fileName = DateTime.now().millisecondsSinceEpoch.toString();
+      UploadTask uploadTask = FirebaseStorage.instance
+          .ref()
+          .child('images/$fileName')
+          .putFile(filePath!);
+
+      TaskSnapshot snapshot = await uploadTask;
+      String imageUrl = await snapshot.ref.getDownloadURL();
+
+      await FirebaseFirestore.instance.collection('predictions').add({
+        'userId': user.uid,
+        'imageUrl': imageUrl,
+        'label': label,
+        'confidence': confidence,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Prediction saved successfully')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to save prediction: $e')),
+      );
+    }
+  }
+
+
   Future<void> _tfLteInit() async {
     String? res = await Tflite.loadModel(
-      model: "assets/modell.tflite",
-      labels: "assets/label.txt",
+      model: "assets/modelfinal1.tflite",
+      labels: "assets/labels.txt",
       numThreads: 1,
       isAsset: true,
       useGpuDelegate: false,
@@ -64,10 +106,10 @@ class _MyHomePageState extends State<MyHomePage> {
 
     var recognitions = await Tflite.runModelOnImage(
       path: image.path,
-      imageMean: 0.0,
-      imageStd: 255.0,
       numResults: 2,
-      threshold: 0.2,
+      threshold: 0.5,
+      imageMean: 127.5,
+      imageStd: 127.5,
       asynch: true,
     );
 
@@ -96,10 +138,10 @@ class _MyHomePageState extends State<MyHomePage> {
 
     var recognitions = await Tflite.runModelOnImage(
       path: image.path,
-      imageMean: 0.0,
-      imageStd: 255.0,
       numResults: 2,
-      threshold: 0.2,
+      threshold: 0.5,
+      imageMean: 127.5,
+      imageStd: 127.5,
       asynch: true,
     );
 
@@ -112,6 +154,37 @@ class _MyHomePageState extends State<MyHomePage> {
       confidence = (recognitions[0]['confidence'] * 100);
       label = recognitions[0]['label'].toString();
     });
+  }
+
+  void _showHelpDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Petunjuk Scan Foto'),
+          content: SingleChildScrollView(
+            child: Column(
+              children: [
+                Image.asset('assets/brown_spot.jpg'), // Gambar petunjuk
+                SizedBox(height: 10),
+                Text(
+                  'Untuk mendeteksi penyakit pada padi, Anda dapat mengambil foto dari galeri atau menggunakan kamera. Pastikan foto yang diambil jelas dan menunjukkan bagian tanaman yang ingin Anda deteksi. Perhatikan pencahayaan dalam pengambilan gambar karena dapat mempengaruhi akurasi dan hasil deteksi',
+                  textAlign: TextAlign.justify,
+                ),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Tutup'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -131,6 +204,12 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Rice Disease Detection"),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.help_outline),
+            onPressed: _showHelpDialog,
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Center(
@@ -193,6 +272,10 @@ class _MyHomePageState extends State<MyHomePage> {
                               const SizedBox(
                                 height: 12,
                               ),
+                              ElevatedButton(
+                                  onPressed: _savePrediction,
+                                  child: const Text('save prediction'),
+                              ),
                             ],
                           ),
                         ),
@@ -204,37 +287,45 @@ class _MyHomePageState extends State<MyHomePage> {
               const SizedBox(
                 height: 8,
               ),
-              ElevatedButton(
-                onPressed: () {
-                  pickImageCamera();
-                },
-                style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 30, vertical: 10),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(13),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () {
+                        pickImageCamera();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 30, vertical: 10),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(13),
+                        ),
+                        foregroundColor: Colors.white,
+                        backgroundColor: Color(0xFF2E8B57),
+                      ),
+                      child: const Text(
+                        "Take a Photo",
+                      ),
                     ),
-                    foregroundColor: Colors.black),
-                child: const Text(
-                  "Take a Photo",
-                ),
-              ),
-              const SizedBox(
-                height: 8,
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  pickImageGallery();
-                },
-                style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 30, vertical: 10),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(13),
+                    ElevatedButton(
+                      onPressed: () {
+                        pickImageGallery();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 30, vertical: 10),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(13),
+                        ),
+                        foregroundColor: Colors.black,
+                      ),
+                      child: const Text(
+                        "Pick from gallery",
+                      ),
                     ),
-                    foregroundColor: Colors.black),
-                child: const Text(
-                  "Pick from gallery",
+                  ],
                 ),
               ),
             ],
