@@ -107,7 +107,7 @@ class _MyHomePageState extends State<MyHomePage> {
     var recognitions = await Tflite.runModelOnImage(
       path: image.path,
       numResults: 2,
-      threshold: 0.5,
+      threshold: 0.3,
       imageMean: 127.5,
       imageStd: 127.5,
       asynch: true,
@@ -139,7 +139,7 @@ class _MyHomePageState extends State<MyHomePage> {
     var recognitions = await Tflite.runModelOnImage(
       path: image.path,
       numResults: 2,
-      threshold: 0.5,
+      threshold: 0.3,
       imageMean: 127.5,
       imageStd: 127.5,
       asynch: true,
@@ -161,22 +161,62 @@ class _MyHomePageState extends State<MyHomePage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Petunjuk Scan Foto'),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(20.0)),
+          ),
+          title: Text(
+            'Panduan Scan Foto',
+            style: TextStyle(
+              // fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
           content: SingleChildScrollView(
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Image.asset('assets/brown_spot.jpg'), // Gambar petunjuk
+                Image.asset(
+                  'assets/brown_spot.jpg', // Gambar petunjuk
+                  fit: BoxFit.cover,
+                ),
                 SizedBox(height: 10),
                 Text(
-                  'Untuk mendeteksi penyakit pada padi, Anda dapat mengambil foto dari galeri atau menggunakan kamera. Pastikan foto yang diambil jelas dan menunjukkan bagian tanaman yang ingin Anda deteksi. Perhatikan pencahayaan dalam pengambilan gambar karena dapat mempengaruhi akurasi dan hasil deteksi',
+                  'Untuk mendeteksi penyakit pada padi, Anda dapat mengambil foto dari galeri atau menggunakan kamera. Pastikan foto yang diambil jelas dan menunjukkan bagian tanaman yang ingin Anda deteksi. Perhatikan pencahayaan dalam pengambilan gambar karena dapat mempengaruhi akurasi dan hasil deteksi.',
                   textAlign: TextAlign.justify,
+                  style: TextStyle(
+                    fontSize: 14,
+                    height: 1.5,
+                    color: Colors.black87,
+                  ),
+                ),
+                SizedBox(height: 10),
+                Text(
+                  'Tips Pengambilan Gambar:',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.green[800],
+                  ),
+                ),
+                SizedBox(height: 5),
+                Text(
+                  '- Gunakan pencahayaan alami yang cukup.\n'
+                      '- Fokuskan kamera pada bagian tanaman yang terkena.\n'
+                      '- Letakkan daun pada kertas putih polos untuk kontras yang lebih baik.\n'
+                      '- Ambil gambar dari beberapa sudut.',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.black87,
+                  ),
                 ),
               ],
             ),
           ),
           actions: <Widget>[
             TextButton(
-              child: Text('Tutup'),
+              child: Text(
+                'Tutup',
+                style: TextStyle(color: Colors.green[800]),
+              ),
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -186,6 +226,7 @@ class _MyHomePageState extends State<MyHomePage> {
       },
     );
   }
+
 
   @override
   void dispose() {

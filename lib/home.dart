@@ -8,8 +8,8 @@ import 'package:test_coba/obat.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:test_coba/detail_obat/detail_obat.dart';
 import 'package:test_coba/Bantuan.dart';
-import 'package:test_coba/profile.dart';
 import 'package:test_coba/main.dart';
+import 'package:test_coba/profile.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -185,7 +185,7 @@ class _HomePageState extends State<HomePage> {
           child: ClipRRect(
             borderRadius: BorderRadius.circular(20),
             child: PageView(
-              controller: _pageController,
+              controller: _pageController ,
               children: [
                 _buildBannerImage('assets/banner_rice.jpg'),
                 _buildBannerImage('assets/petani2.jpg'),
