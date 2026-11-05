@@ -74,13 +74,16 @@ Display Result in Mobile App
 
 Screenshots of the application will be added here.
 
-| Home Screen | Detection Screen |
-|---|---|
-| TODO: Add screenshot | TODO: Add screenshot |
+| Autentication |
+![Autentication Screen](screenshots/autentikasi.png)
 
-| Prediction Result | Other Features |
-|---|---|
-| TODO: Add screenshot | TODO: Add screenshot |
+| Home Screen | 
+![Home Screen](screenshots/home.png)
+ 
+| Prediction Result |
+![Prediction Screen](screenshots/Scanning.png)
+
+
 
 ## 🚀 Getting Started
 
